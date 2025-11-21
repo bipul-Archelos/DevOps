@@ -1,6 +1,11 @@
-import time
+from flask import Flask
 
-print("hello from Docker Container")
+app = Flask(__name__)
 
-while True:
-    time.sleep(5)
+@app.route("/")
+def home():
+    return "Hello from Docker + NGINX + Jenkins Pipeline"
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0",port=5000)
+    
