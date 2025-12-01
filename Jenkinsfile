@@ -5,7 +5,7 @@ pipeline {
         stage('Pull Code') {
             steps {
                 echo 'Pulling code from GitHub...'
-                git 'https://github.com/bipul-Archelos/DevOps.git'
+                git branch: "main", url:'https://github.com/bipul-Archelos/DevOps.git'
             }
         }
 
