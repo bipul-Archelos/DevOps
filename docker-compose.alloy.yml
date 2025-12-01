@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  alloy:
+    image: grafana/alloy:latest
+    container_name: alloy
+    volumes:
+      - ./alloy-config.alloy:/etc/alloy/config.alloy
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    entrypoint: ["/bin/alloy"]
+    command: ["run","/etc/alloy/config.alloy"]
+    restart: unless-stopped

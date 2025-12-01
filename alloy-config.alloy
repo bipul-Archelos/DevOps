@@ -1,0 +1,71 @@
+
+
+///////////////
+// 1. LOGGING (Existing Log Pipeline)
+///////////////
+// 1. ENABLE LIVE DEBUGGING
+livedebugging {
+  enabled = true
+}
+
+///////////////
+// 2. LOGGING PIPELINE
+///////////////
+
+local.file_match "system_logs" {
+  path_targets = [{
+      __path__  = "/var/log/**/*.log",
+      job       = "system",
+  }]
+}
+
+loki.source.file "system" {
+  targets    = local.file_match.system_logs.targets
+  forward_to = [loki.write.local.receiver]
+}
+
+discovery.docker "linux" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "docker_labels" {
+  targets = discovery.docker.linux.targets
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    target_label  = "container"
+  }
+}
+
+loki.source.docker "default" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.docker_labels.output
+  forward_to = [loki.write.local.receiver]
+  labels     = {"job" = "docker"}
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://localhost:3100/loki/api/v1/push"
+  }
+}
+
+///////////////
+// 3. METRICS PIPELINE
+///////////////
+
+// Collects Linux System Metrics (CPU, RAM, Disk)
+prometheus.exporter.unix "host_metrics" { }
+
+// Scrapes the collector defined above
+prometheus.scrape "scraper" {
+  targets    = prometheus.exporter.unix.host_metrics.targets
+  forward_to = [prometheus.remote_write.local.receiver] 
+}
+
+// Sends metrics to Prometheus
+prometheus.remote_write "local" {
+  endpoint {
+    // Requires Prometheus to run with --web.enable-remote-write-receiver
+    url = "http://localhost:9090/api/v1/write"
+  }
+}

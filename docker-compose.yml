@@ -1,0 +1,58 @@
+# version: "3.8"
+
+# services:
+#   loki:
+#     image: grafana/loki:2.9.0
+#     container_name: loki
+
+#     ports:
+#       - "3100:3100"
+#     command: ["-config.file=/etc/loki/local-config.yaml"]
+#     volumes:
+#       - ./loki-config.yaml:/etc/loki/local-config.yaml
+#       - ./loki-data:/loki
+#     restart: unless-stopped
+
+#   alloy:
+#     image: grafana/alloy:1.4.1
+#     container_name: alloy
+#     volumes:
+#       - ./alloy-config.alloy:/etc/alloy/config.alloy
+#       - /var/log:/var/log:ro
+#       - /var/lib/docker/containers:/var/lib/docker/containers:ro
+#     entrypoint: ["/bin/alloy"]
+#     command: ["run", "/etc/alloy/config.alloy"]
+#     depends_on:
+#       - loki
+#     restart: unless-stopped
+    
+
+
+version: "3.8"
+services:
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+    volumes:
+      - ./loki-config.yaml:/etc/loki/local-config.yaml
+      - ./loki-data:/loki
+    user: "0"
+    restart: unless-stopped
+
+  alloy:
+    image: grafana/alloy:latest
+    container_name: alloy
+    user: root
+    ports:
+      - "12345:12345"
+    volumes:
+      - ./alloy-config.alloy:/etc/alloy/config.alloy
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: ["run","--server.http.listen-addr=0.0.0.0:12345","--storage.path=/var/lib/alloy/data","/etc/alloy/config.alloy"]
+    depends_on:
+      - loki
+    restart: unless-stopped
