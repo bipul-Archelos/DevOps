@@ -15,18 +15,18 @@ pipeline {
             }
         }
 
-        stage('Tag Docker Image') {
-            steps {
-                sh 'docker tag devops-app testethical/devops-app:v1'
-            }
-        }
+        // stage('Tag Docker Image') {
+        //     steps {
+        //         sh 'docker tag devops-app testethical/devops-app:v1'
+        //     }
+        // }
 
         stage('Push Docker Image') {
             steps {
                 withCredentials([string(credentialsId: 'dockerhub-pass', variable:'PASSWORD')]) {
                     sh 'echo "$PASSWORD" | docker login -u testethical --password-stdin'
+                sh "docker push testethical/devops-app:${env.BUILD_NUMBER}"
                 }
-                sh 'docker push testethical/devops-app:${env.BUILD_NUMBER}'
             }
         }
         stage('Deploy to kubernetes'){
