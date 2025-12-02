@@ -15,12 +15,6 @@ pipeline {
             }
         }
 
-        // stage('Tag Docker Image') {
-        //     steps {
-        //         sh 'docker tag devops-app testethical/devops-app:v1'
-        //     }
-        // }
-
         stage('Push Docker Image') {
             steps {
                 withCredentials([string(credentialsId: 'dockerhub-pass', variable:'PASSWORD')]) {
